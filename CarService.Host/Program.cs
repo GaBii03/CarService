@@ -1,9 +1,11 @@
 using Microsoft.OpenApi.Models;
+using CarService.BL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ако проектът ти има контролери
 builder.Services.AddControllers();
+builder.Services.AddBusinessLogic();
 
 // активиране на Swagger
 builder.Services.AddEndpointsApiExplorer();

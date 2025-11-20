@@ -2,7 +2,7 @@ using CarService.Models.Entities;
 
 namespace CarService.DL.MyStaticDB
 {
-    public class StaticDB
+    internal static class StaticDB
     {
         internal static List<Customer> Customers { get; set; } = new List<Customer>()
         {
