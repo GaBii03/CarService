@@ -11,6 +11,7 @@ namespace CarService.BL
         {
             services.AddDataLayer();
             services.AddSingleton<ICustomerService, CustomerService>();
+            services.AddSingleton<ICarService, Services.CarService>();
             return services;
         }
     }

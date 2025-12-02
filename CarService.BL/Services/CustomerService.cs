@@ -25,14 +25,12 @@ namespace CarService.BL.Services
 
         public List<Customer> GetAllCustomers()
         {
-            _customerRepository.GetAllCustomers();
-            return null;
+            return _customerRepository.GetAllCustomers();
         }
 
         public Customer? GetCustomerById(int id)
         {
-            _customerRepository.GetCustomerById(id);
-            return null;
+            return _customerRepository.GetCustomerById(id);
         }
 
         public void UpdateCustomer(Customer customer)
