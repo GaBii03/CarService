@@ -2,7 +2,7 @@ using CarService.Models.Entities;
 
 namespace CarService.DL.MyStaticDB
 {
-    public class StaticDB
+    internal static class StaticDB
     {
         internal static List<Customer> Customers { get; set; } = new List<Customer>()
         {
@@ -17,6 +17,22 @@ namespace CarService.DL.MyStaticDB
                 Id = 2,
                 Name = "Jane Smith",
                 Email = "js@xxx.com"
+            }
+        };
+
+        internal static List<Car> Cars { get; set; } = new List<Car>()
+        {
+            new Car()
+            {
+                Id = Guid.NewGuid(),
+                Model = "Toyota Camry",
+                Year = 2020
+            },
+            new Car()
+            {
+                Id = Guid.NewGuid(),
+                Model = "Honda Accord",
+                Year = 2019
             }
         };
     }
