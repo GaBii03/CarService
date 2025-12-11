@@ -4,38 +4,38 @@ using CarService.Models.Entities;
 
 namespace CarService.BL.Services
 {
-    public class CustomerService : ICustomerService
+    internal class CustomerService : ICustomerService
     {
         private readonly ICustomerRepository _customerRepository;
 
-        public CustomerService(ICustomerRepository customerRepository)
+        public CustomerService(
+            ICustomerRepository customerRepository)
         {
             _customerRepository = customerRepository;
         }
 
-        public void AddCustomer(Customer customer)
+        public void Add(Customer? customer)
         {
-            _customerRepository.AddCustomer(customer);
+            if (customer == null) return;
+
+            customer.Id = Guid.NewGuid();
+
+            _customerRepository.Add(customer);
         }
 
-        public void DeleteCustomer(int id)
+        public List<Customer> GetAll()
         {
-            _customerRepository.DeleteCustomer(id);
+            return _customerRepository.GetAll();
         }
 
-        public List<Customer> GetAllCustomers()
+        public Customer? GetById(Guid id)
         {
-            return _customerRepository.GetAllCustomers();
+            return _customerRepository.GetById(id);
         }
 
-        public Customer? GetCustomerById(int id)
+        public void Delete(Guid id)
         {
-            return _customerRepository.GetCustomerById(id);
-        }
-
-        public void UpdateCustomer(Customer customer)
-        {
-            _customerRepository.UpdateCustomer(customer);
+            _customerRepository.Delete(id);
         }
     }
 }

@@ -1,38 +1,61 @@
-using Microsoft.OpenApi.Models;
 using CarService.BL;
 using CarService.DL;
+using CarService.DL.Interfaces;
+using Mapster;
+using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// ако проектът ти има контролери
-builder.Services.AddControllers();
-builder.Services.AddBusinessLogic();
-builder.Services.AddConfigurations(builder.Configuration);
-
-
-// активиране на Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+namespace CarService.Host
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    public class Program
     {
-        Title = "My API",
-        Version = "v1",
-        Description = "Примерна Swagger интеграция в .NET 9"
-    });
-});
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+            Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+            .CreateLogger();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API v1");
-    });
+            builder.Host.UseSerilog();
+
+            // Add services to the container.
+            builder.Services
+                .AddConfigurations(builder.Configuration)
+                .AddDataLayer()
+                .AddBusinessLogicLayer();
+
+            builder.Services.AddMapster();
+
+            builder.Services.AddControllers();
+
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Car Service", Version = "v1" });
+            });
+
+
+            var app = builder.Build();
+            // Configure the HTTP request pipeline.
+
+            //app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
+
+            app.MapControllers();
+
+            app.UseSwagger();
+            
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("v1/swagger.json", "Car Service V1");
+            });
+
+            app.Run();
+        }
+    }
 }
-
-app.MapControllers();
-
-app.Run();

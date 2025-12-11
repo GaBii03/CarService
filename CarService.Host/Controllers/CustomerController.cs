@@ -1,126 +1,94 @@
 using CarService.BL.Interfaces;
 using CarService.Models.Entities;
+using CarService.Models.Requests;
+using MapsterMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarService.Host.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerService _customerService;
         private readonly ILogger<CustomerController> _logger;
+        private readonly IMapper _mapper;
 
-        public CustomerController(ICustomerService customerService, ILogger<CustomerController> logger)
+        public CustomerController(
+            ICustomerService customerService,
+            ILogger<CustomerController> logger,
+            IMapper mapper)
         {
             _customerService = customerService;
             _logger = logger;
+            _mapper = mapper;
         }
 
-        [HttpGet]
-        public ActionResult<List<Customer>> GetAllCustomers()
+        [HttpGet(nameof(GetAllCustomers))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult GetAllCustomers()
         {
-            try
-            {
-                var customers = _customerService.GetAllCustomers();
-                return Ok(customers);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all customers");
-                return StatusCode(500, "An error occurred while retrieving customers");
-            }
+            var customers =
+                _customerService.GetAll();
+
+            if (customers?.Count == 0) return NoContent();
+
+            return Ok(customers);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<Customer> GetCustomerById(int id)
+        [HttpGet(nameof(GetCustomerById))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult GetCustomerById(Guid id)
         {
-            try
+            if (id == Guid.Empty)
             {
-                var customer = _customerService.GetCustomerById(id);
-                if (customer == null)
-                {
-                    return NotFound($"Customer with id {id} not found");
-                }
-                return Ok(customer);
+                return BadRequest("Id must be greater than zero.");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving customer with id {Id}", id);
-                return StatusCode(500, "An error occurred while retrieving the customer");
-            }
+
+            var customer =
+                _customerService.GetById(id);
+
+            if (customer == null) return NotFound();
+
+            return Ok(customer);
         }
 
-        [HttpPost]
-        public ActionResult<Customer> AddCustomer([FromBody] Customer customer)
+        [HttpPost(nameof(AddCustomer))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult AddCustomer([FromBody] AddCustomerRequest? request)
         {
-            try
+            if (request == null)
             {
-                if (customer == null)
-                {
-                    return BadRequest("Customer data is required");
-                }
+                return BadRequest("Customer cannot be null.");
+            }
 
-                _customerService.AddCustomer(customer);
-                return CreatedAtAction(nameof(GetCustomerById), new { id = customer.Id }, customer);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding customer");
-                return StatusCode(500, "An error occurred while adding the customer");
-            }
+            var customer = _mapper.Map<Customer>(request);
+
+            if (customer == null) return BadRequest("Mapping failed.");
+
+            _customerService.Add(customer);
+
+            return Ok();
         }
 
-        [HttpPut("{id}")]
-        public IActionResult UpdateCustomer(int id, [FromBody] Customer customer)
+        [HttpDelete(nameof(DeleteCustomer))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult DeleteCustomer(Guid id)
         {
-            try
+            if (id == Guid.Empty)
             {
-                if (customer == null)
-                {
-                    return BadRequest("Customer data is required");
-                }
-
-                if (id != customer.Id)
-                {
-                    return BadRequest("Customer ID mismatch");
-                }
-
-                var existingCustomer = _customerService.GetCustomerById(id);
-                if (existingCustomer == null)
-                {
-                    return NotFound($"Customer with id {id} not found");
-                }
-
-                _customerService.UpdateCustomer(customer);
-                return NoContent();
+                return BadRequest("Id must be greater than zero.");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating customer with id {Id}", id);
-                return StatusCode(500, "An error occurred while updating the customer");
-            }
-        }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteCustomer(int id)
-        {
-            try
-            {
-                var customer = _customerService.GetCustomerById(id);
-                if (customer == null)
-                {
-                    return NotFound($"Customer with id {id} not found");
-                }
+            _customerService.Delete(id);
 
-                _customerService.DeleteCustomer(id);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting customer with id {Id}", id);
-                return StatusCode(500, "An error occurred while deleting the customer");
-            }
+            return Ok();
         }
     }
 }

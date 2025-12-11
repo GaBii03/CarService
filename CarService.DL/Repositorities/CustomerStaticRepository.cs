@@ -1,48 +1,53 @@
 using CarService.DL.Interfaces;
 using CarService.DL.MyStaticDB;
 using CarService.Models.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace CarService.DL.Repositorities
 {
-    public class CustomerStaticRepository : ICustomerRepository
+    internal class CustomerStaticRepository : ICustomerRepository
     {
-        public void AddCustomer(Customer customer)
+        private readonly ILogger<CustomerStaticRepository> _logger;
+
+        public CustomerStaticRepository(ILogger<CustomerStaticRepository> logger)
         {
-            if (customer == null)
-            {
-                return;
-            }
+            _logger = logger;
+        }
+
+        public void Add(Customer? customer)
+        {
+            if (customer == null) return;
 
             StaticDB.Customers.Add(customer);
         }
 
-        public Customer? GetCustomerById(int id)
+        public List<Customer> GetAll()
         {
-            if (id <= 0)
+            try
             {
-                return null;
+                return StaticDB.Customers;
             }
-            return StaticDB.Customers.FirstOrDefault(c => c.Id == id);
-        }
-
-        public List<Customer> GetAllCustomers()
-        {
-            return StaticDB.Customers;
-        }
-
-        public void UpdateCustomer(Customer customer)
-        {
-            var existingCustomer = GetCustomerById(customer.Id);
-            if (existingCustomer != null)
+            catch (Exception e)
             {
-                existingCustomer.Name = customer.Name;
-                existingCustomer.Email = customer.Email;
+                _logger.LogError($"Error in {nameof(GetAll)}:{e.Message}-{e.StackTrace}");
             }
+
+            return new List<Customer>();
         }
 
-        public void DeleteCustomer(int id)
+        public Customer? GetById(Guid id)
         {
-            var customer = GetCustomerById(id);
+            if (id == Guid.Empty) return null;
+
+            return StaticDB.Customers
+                .FirstOrDefault(c => c.Id == id);
+        }
+
+        public void Delete(Guid id)
+        {
+            if (id == Guid.Empty) return;
+
+            var customer = GetById(id);
 
             if (customer != null)
             {

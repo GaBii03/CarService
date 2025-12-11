@@ -8,13 +8,13 @@ namespace CarService.DL.MyStaticDB
         {
             new Customer()
             {
-                Id = 1,
+                Id = Guid.NewGuid(),
                 Name = "John Doe",
                 Email = "jd@xxx.com"
             },
             new Customer()
             {
-                Id = 2,
+                Id = Guid.NewGuid(),
                 Name = "Jane Smith",
                 Email = "js@xxx.com"
             }
