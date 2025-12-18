@@ -1,6 +1,9 @@
 using CarService.BL;
 using CarService.DL;
+using CarService.Host.Validators;
 using CarService.Models.Configurations;
+using CarService.Models.Requests;
+using FluentValidation;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
@@ -23,6 +26,7 @@ namespace CarService.Host
             .CreateLogger();
 
             builder.Host.UseSerilog();
+            builder.Services.AddValidatorsFromAssemblyContaining<AddCustomerValidator>();
 
             // Add services to the container.
             builder.Services

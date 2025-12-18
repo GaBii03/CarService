@@ -1,5 +1,8 @@
 using CarService.BL.Interfaces;
 using CarService.Models.Entities;
+using CarService.Models.Requests;
+using FluentValidation;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarService.Host.Controllers
@@ -11,10 +14,17 @@ namespace CarService.Host.Controllers
         private readonly ICarService _carService;
         private readonly ILogger<CarController> _logger;
 
-        public CarController(ICarService carService, ILogger<CarController> logger)
+        private readonly IMapper _mapper;
+
+        private readonly IValidator<AddCarRequest> _validator;
+
+        public CarController(ICarService carService,
+                            ILogger<CarController> logger,
+                            IValidator<AddCarRequest> validator)
         {
             _carService = carService;
             _logger = logger;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -52,28 +62,27 @@ namespace CarService.Host.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Car> AddCar([FromBody] Car car)
+        public ActionResult AddCar([FromBody] AddCarRequest request)
         {
-            try
+            if (request == null)
             {
-                if (car == null)
-                {
-                    return BadRequest("Car data is required");
-                }
-
-                if (car.Id == Guid.Empty)
-                {
-                    car.Id = Guid.NewGuid();
-                }
-
-                _carService.AddCar(car);
-                return CreatedAtAction(nameof(GetCarById), new { id = car.Id }, car);
+                return BadRequest("Car data is required");
             }
-            catch (Exception ex)
+
+            var validationResult = _validator.Validate(request);
+            if (!validationResult.IsValid)
             {
-                _logger.LogError(ex, "Error adding car");
-                return StatusCode(500, "An error occurred while adding the car");
+                return BadRequest(validationResult.Errors);
             }
+            var car = _mapper.Map<Car>(request);
+            if (car.Id == Guid.Empty)
+            {
+                car.Id = Guid.NewGuid();
+            }
+
+            _carService.AddCar(car);
+            return CreatedAtAction(nameof(GetCarById), new { id = car.Id }, car);
+
         }
 
         [HttpPut("{id}")]

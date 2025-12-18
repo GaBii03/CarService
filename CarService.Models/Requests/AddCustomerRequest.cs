@@ -5,6 +5,8 @@ namespace CarService.Models.Requests
         public string Name { get; set; }
 
         public string Email { get; set; }
+
+        public int Years { get; set; }
     }
 }
 

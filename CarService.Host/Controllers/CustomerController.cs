@@ -1,6 +1,7 @@
 using CarService.BL.Interfaces;
 using CarService.Models.Entities;
 using CarService.Models.Requests;
+using FluentValidation;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -15,14 +16,18 @@ namespace CarService.Host.Controllers
         private readonly ILogger<CustomerController> _logger;
         private readonly IMapper _mapper;
 
+        private readonly IValidator<AddCustomerRequest> _validator;
+
         public CustomerController(
             ICustomerService customerService,
             ILogger<CustomerController> logger,
-            IMapper mapper)
+            IMapper mapper,
+            IValidator<AddCustomerRequest> validator)
         {
             _customerService = customerService;
             _logger = logger;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet(nameof(GetAllCustomers))]
@@ -67,6 +72,14 @@ namespace CarService.Host.Controllers
                 return BadRequest("Customer cannot be null.");
             }
 
+            var validationResult = _validator.Validate(request);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            
+            
             var customer = _mapper.Map<Customer>(request);
 
             if (customer == null) return BadRequest("Mapping failed.");
