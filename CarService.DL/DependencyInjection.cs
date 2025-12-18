@@ -4,6 +4,9 @@ using CarService.DL.Interfaces;
 using CarService.DL.Repositorities;
 using CarService.Models.Configurations;
 using MongoDB.Driver;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson;
 
 namespace CarService.DL
 {
@@ -11,10 +14,14 @@ namespace CarService.DL
     {
         public static IServiceCollection AddDataLayer(this IServiceCollection services)
         {
-            services.AddSingleton<ICustomerRepository, CustomerStaticRepository>();
+            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+            
+            services.AddSingleton<ICustomerRepository, CustomerRepository>();
             services.AddSingleton<ICarRepository, CarMongoRepository>();
             return services;
         }
+
+    
 
         public static IServiceCollection AddConfigurations(this IServiceCollection services, IConfiguration configuration)
         {

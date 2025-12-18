@@ -1,8 +1,10 @@
 using CarService.BL;
 using CarService.DL;
-using CarService.DL.Interfaces;
+using CarService.Models.Configurations;
 using Mapster;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 
@@ -37,6 +39,21 @@ namespace CarService.Host
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Car Service", Version = "v1" });
             });
 
+            // Add Health Checks
+            var mongoConfig = builder.Configuration.GetSection("MongoDbConfiguration").Get<MongoDbConfiguration>();
+            if (mongoConfig != null)
+            {
+                builder.Services.AddHealthChecks()
+                    .AddMongoDb(
+                        sp => sp.GetRequiredService<IMongoClient>(),
+                        name: "mongodb",
+                        tags: new[] { "db", "mongodb" });
+            }
+            else
+            {
+                builder.Services.AddHealthChecks();
+            }
+
 
             var app = builder.Build();
             // Configure the HTTP request pipeline.
@@ -48,8 +65,11 @@ namespace CarService.Host
 
             app.MapControllers();
 
+            // Map Health Check endpoint
+            app.MapHealthChecks("/health");
+
             app.UseSwagger();
-            
+
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("v1/swagger.json", "Car Service V1");
