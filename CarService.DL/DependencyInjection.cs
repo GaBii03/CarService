@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using CarService.DL.Interfaces;
 using CarService.DL.Repositorities;
+using CarService.DL.Infrastructure;
 using CarService.Models.Configurations;
 using MongoDB.Driver;
 using MongoDB.Bson.Serialization;
@@ -18,6 +19,10 @@ namespace CarService.DL
             
             services.AddSingleton<ICustomerRepository, CustomerRepository>();
             services.AddSingleton<ICarRepository, CarMongoRepository>();
+
+            services.AddHostedService<CarHostedService>();
+            services.AddHostedService<CarBackgroundService>();
+
             return services;
         }
 

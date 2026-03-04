@@ -1,6 +1,7 @@
 using CarService.BL.Interfaces;
 using CarService.DL.Interfaces;
 using CarService.Models.Entities;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CarService.BL.Services
 {
@@ -22,6 +23,7 @@ namespace CarService.BL.Services
 
             _customerRepository.Add(customer);
         }
+        
 
         public List<Customer> GetAll()
         {
@@ -37,5 +39,7 @@ namespace CarService.BL.Services
         {
             _customerRepository.Delete(id);
         }
+
+        
     }
 }
