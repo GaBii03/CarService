@@ -1,7 +1,9 @@
 
 using CarService.BL.Interfaces;
 using CarService.BL.Services;
+using CarService.DL.Kafka;
 using CarService.Models.Entities;
+using CarService.Models.Messages;
 using CarService.Models.Responses;
 using Moq;
 
@@ -11,11 +13,16 @@ namespace CarService.Tests
     {
         private readonly Mock<ICustomerService> _customerServiceMock;
         private readonly Mock<ICarService> _carServiceMock;
+        private readonly Mock<IKafkaProducer<SellCarMessage>> _kafkaProducerMock;
 
         public SellCarTests()
         {
             _customerServiceMock = new Mock<ICustomerService>();
             _carServiceMock = new Mock<ICarService>();
+            _kafkaProducerMock = new Mock<IKafkaProducer<SellCarMessage>>();
+            _kafkaProducerMock
+                .Setup(p => p.ProduceAsync(It.IsAny<string>(), It.IsAny<SellCarMessage>()))
+                .Returns(Task.CompletedTask);
         }
 
         [Fact]
@@ -43,7 +50,8 @@ namespace CarService.Tests
             // Act
             var sellCarService = new SellCarService(
                 _customerServiceMock.Object,
-                _carServiceMock.Object);
+                _carServiceMock.Object,
+                _kafkaProducerMock.Object);
 
             var result = sellCarService.SellCar(carId, customerId);
 

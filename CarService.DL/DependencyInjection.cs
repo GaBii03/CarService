@@ -3,7 +3,10 @@ using Microsoft.Extensions.Configuration;
 using CarService.DL.Interfaces;
 using CarService.DL.Repositorities;
 using CarService.DL.Infrastructure;
+using CarService.DL.Kafka;
 using CarService.Models.Configurations;
+using CarService.Models.Messages;
+
 using MongoDB.Driver;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -23,16 +26,20 @@ namespace CarService.DL
             services.AddHostedService<CarHostedService>();
             services.AddHostedService<CarBackgroundService>();
 
+            services.AddSingleton<IKafkaProducer<ChatMessage>, KafkaProducer<ChatMessage>>();
+            services.AddHostedService<KafkaConsumer<ChatMessage>>();
+
+            services.AddSingleton<IKafkaProducer<SellCarMessage>, KafkaProducer<SellCarMessage>>();
+            services.AddHostedService<SellCarKafkaConsumer>();
+
             return services;
         }
-
-    
 
         public static IServiceCollection AddConfigurations(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<MongoDbConfiguration>(configuration.GetSection("MongoDbConfiguration"));
-            
-            // Register MongoClient with connection string from configuration
+            services.Configure<KafkaConfiguration>(configuration.GetSection("KafkaConfiguration"));
+
             var mongoConfig = configuration.GetSection("MongoDbConfiguration").Get<MongoDbConfiguration>();
             if (mongoConfig != null)
             {
@@ -45,7 +52,6 @@ namespace CarService.DL
             
             return services;
         }
-
     }
 }
 
